@@ -1,0 +1,26 @@
+# Example workflow for using the OpenClaw PR Triage Action
+# Copy this to your repo at .github/workflows/pr-triage.yml
+
+name: PR Triage
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+permissions:
+  pull-requests: write
+  issues: write
+  contents: read
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Triage PR
+        uses: dinakars777/openclaw-triage-action@main
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          enable-labels: true
+          enable-duplicate-check: true
+          enable-contributor-profile: true
+          duplicate-threshold: 50

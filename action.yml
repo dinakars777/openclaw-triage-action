@@ -1,0 +1,47 @@
+name: PR Triage Bot
+description: >
+  Automatically triages pull requests on open — classifies type, assesses risk,
+  checks for duplicates, profiles contributors, and posts a structured triage
+  summary as a PR comment.
+author: dinakars777
+branding:
+  icon: 'git-pull-request'
+  color: 'blue'
+
+inputs:
+  github-token:
+    description: 'GitHub token for API access (defaults to GITHUB_TOKEN)'
+    required: false
+    default: ${{ github.token }}
+  duplicate-threshold:
+    description: 'Minimum file overlap % to flag as duplicate (default: 50)'
+    required: false
+    default: '50'
+  enable-labels:
+    description: 'Auto-apply suggested labels (true/false)'
+    required: false
+    default: 'true'
+  enable-duplicate-check:
+    description: 'Check for duplicate/plagiarized PRs (true/false)'
+    required: false
+    default: 'true'
+  enable-contributor-profile:
+    description: 'Include contributor profile in triage (true/false)'
+    required: false
+    default: 'true'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Run PR Triage
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+        REPO: ${{ github.repository }}
+        DUPLICATE_THRESHOLD: ${{ inputs.duplicate-threshold }}
+        ENABLE_LABELS: ${{ inputs.enable-labels }}
+        ENABLE_DUPLICATE_CHECK: ${{ inputs.enable-duplicate-check }}
+        ENABLE_CONTRIBUTOR_PROFILE: ${{ inputs.enable-contributor-profile }}
+      run: |
+        bash ${{ github.action_path }}/scripts/triage-action.sh
