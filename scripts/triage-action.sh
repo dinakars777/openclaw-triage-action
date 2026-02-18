@@ -25,9 +25,7 @@ echo "🔍 Triaging PR #${PR_NUMBER} in ${REPO}..."
 echo "📥 Fetching PR metadata..."
 
 PR_DATA=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json \
-  number,title,state,author,createdAt,updatedAt,baseRefName,headRefName, \
-  isDraft,mergeable,mergeStateStatus,labels,reviewDecision,reviewRequests, \
-  additions,deletions,changedFiles,body,url,milestone,assignees,files \
+  number,title,state,author,createdAt,updatedAt,baseRefName,headRefName,isDraft,mergeable,mergeStateStatus,labels,reviewDecision,reviewRequests,additions,deletions,changedFiles,body,url,milestone,assignees \
   2>/dev/null) || {
   echo "::error::Failed to fetch PR #${PR_NUMBER}"
   exit 1
@@ -48,7 +46,9 @@ BODY=$(echo "$PR_DATA" | jq -r '.body // ""')
 URL=$(echo "$PR_DATA" | jq -r '.url')
 CREATED=$(echo "$PR_DATA" | jq -r '.createdAt')
 LABELS=$(echo "$PR_DATA" | jq -r '[.labels[].name] | join(", ")')
-FILE_PATHS=$(echo "$PR_DATA" | jq -r '[.files[].path] | join("\n")')
+
+# Fetch file paths via API (more reliable than --json files)
+FILE_PATHS=$(gh api "repos/${REPO}/pulls/${PR_NUMBER}/files" --jq '.[].filename' 2>/dev/null) || FILE_PATHS=""
 
 TOTAL_CHANGES=$((ADDITIONS + DELETIONS))
 
@@ -173,13 +173,13 @@ DUPLICATE_SECTION=""
 if [[ "$ENABLE_DUPLICATE_CHECK" == "true" ]]; then
   echo "🔍 Checking for duplicates..."
 
-  TARGET_FILES=$(echo "$PR_DATA" | jq -r '[.files[].path] | .[]')
-  TARGET_FILE_COUNT=$(echo "$TARGET_FILES" | wc -l | xargs)
+  TARGET_FILES="$FILE_PATHS"
+  TARGET_FILE_COUNT=$(echo "$TARGET_FILES" | grep -c . || echo "0")
 
   if [[ "$TARGET_FILE_COUNT" -gt 0 ]]; then
-    # Get recent open PRs
+    # Get recent open PRs and their files via API
     OPEN_PRS=$(gh pr list --repo "$REPO" --state open --limit 30 \
-      --json number,title,author,headRefName,files \
+      --json number,title,author,headRefName \
       --jq ".[] | select(.number != ${PR_NUMBER})" 2>/dev/null) || OPEN_PRS=""
 
     DUPLICATES_FOUND=""
@@ -189,7 +189,7 @@ if [[ "$ENABLE_DUPLICATE_CHECK" == "true" ]]; then
         OTHER_NUM=$(echo "$other_pr" | jq -r '.number')
         OTHER_TITLE=$(echo "$other_pr" | jq -r '.title')
         OTHER_AUTHOR=$(echo "$other_pr" | jq -r '.author.login')
-        OTHER_FILES=$(echo "$other_pr" | jq -r '[.files[].path] | .[]' 2>/dev/null) || continue
+        OTHER_FILES=$(gh api "repos/${REPO}/pulls/${OTHER_NUM}/files" --jq '.[].filename' 2>/dev/null) || continue
 
         # Count file overlap
         OVERLAP=0
