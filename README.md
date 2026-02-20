@@ -140,7 +140,7 @@ graph LR
 
 ## Built By
 
-**Dinakar** — OpenClaw contributor ([PR #6590](https://github.com/openclaw/openclaw/pull/6590))
+**Dinakar** 
 
 ---
 
