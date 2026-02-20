@@ -1,8 +1,5 @@
 name: PR Triage Bot
-description: >
-  Automatically triages pull requests on open — classifies type, assesses risk,
-  checks for duplicates, profiles contributors, and posts a structured triage
-  summary as a PR comment.
+description: "Triages PRs at birth: classifies type, assesses risk, finds duplicates, and profiles authors to post a structured summary."
 author: dinakars777
 branding:
   icon: 'git-pull-request'
