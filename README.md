@@ -1,4 +1,4 @@
-# 🤖 OpenClaw PR Triage Action
+# 🤖 PR Triage Action
 
 > **Automated PR triage for large repositories** — classifies, assesses risk, detects duplicates, profiles contributors, and posts structured triage summaries on every PR.
 
